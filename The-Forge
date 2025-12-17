@@ -1,109 +1,235 @@
-local __PELINDA_SERVICE__ = "punk-x-release-key"
-local __PELINDA_SILENTMODE__ = true
-local __PELINDA_SECURITY_LEVEL__ = 1 
-local PUNK_HUB_URL = "https://raw.githubusercontent.com/GBMofo/Punk-Hub/main/The-Forge"
+repeat task.wait() until game:IsLoaded()
 
--- [[ HUB EXECUTION ]]
-local function LoadHub()
-    print("Punk X: Attempting to fetch script...")
-    local success, scriptContent = pcall(function()
-        return game:HttpGet(PUNK_HUB_URL)
-    end)
+local AuthLibrary = nil 
 
-    if success and scriptContent then
-        -- Check if GitHub returned a 404 page text instead of code
-        if scriptContent:find("404: Not Found") or scriptContent:find("<!DOCTYPE html>") then
-            warn("Punk X: HTTP 404 - GitHub could not find the file 'The-Forge'. Check if the repo is Public.")
-            return
-        end
-        
-        local loadFunc, err = loadstring(scriptContent)
-        if loadFunc then
-            print("Punk X: Success Load!")
-            loadFunc()
-        else
-            warn("Punk X: Script compilation failed: " .. tostring(err))
-        end
-    else
-        warn("Punk X: Failed to reach GitHub. Error: " .. tostring(scriptContent))
+local ServiceID = "punk-x-release-key" 
+
+local ScriptLoader = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/GBMofo/Punk-Hub/main/The-Forge"))()'
+
+local function getSafeHWID()
+    if gethwid then 
+        return gethwid()
+    elseif syn and syn.gethwid then
+        return syn.gethwid()
     end
+    return game:GetService("RbxAnalyticsService"):GetClientId()
 end
 
-function ShowKeySystem()
-    -- Draggable Function
-    local function MakeDraggable(gui)
-        local dragging, dragInput, dragStart, startPos
-        local function update(input)
-            local delta = input.Position - dragStart
-            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+function GetKeyLink(serviceId, hwid)
+    return "https://pandadevelopment.net/getkey?service=" .. tostring(serviceId) .. "&hwid=" .. tostring(hwid)
+end
+
+local savedKeyPath = "Punkhub_Key.lua"
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local function notif(text, title)
+    StarterGui:SetCore("SendNotification", {
+        Title = title or "Panda 3 / Punk X",
+        Text = text or "",
+        Duration = 5
+    })
+end
+
+local gui = Instance.new("ScreenGui", playerGui)
+gui.Name = "Panda3_PunkX_KeySystem"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 360, 0, 190)
+main.Position = UDim2.new(0.5, 0, 0.5, 0)
+main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+main.BorderSizePixel = 0
+main.Parent = gui
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 10)
+title.BackgroundTransparency = 1
+title.Text = "PANDA 3 / PUNK X HUB"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+
+local closeBtn = Instance.new("TextButton", main)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -40, 0, 5)
+closeBtn.BackgroundTransparency = 1
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 16
+local xGradient = Instance.new("UIGradient", closeBtn)
+xGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 30))
+}
+xGradient.Rotation = 45
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+local subtitle = Instance.new("TextLabel", main)
+subtitle.Size = UDim2.new(1, 0, 0, 20)
+subtitle.Position = UDim2.new(0, 0, 0, 40)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "Authentication via Panda Development"
+subtitle.TextColor3 = Color3.fromRGB(170, 170, 170)
+subtitle.Font = Enum.Font.Gotham
+subtitle.TextSize = 14
+
+local keyInput = Instance.new("TextBox", main)
+keyInput.Size = UDim2.new(0.779, 0,0, 35)
+keyInput.Position = UDim2.new(0.05, 0, 0, 75)
+keyInput.PlaceholderText = "Paste Key Here..."
+keyInput.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyInput.Text = ""
+keyInput.Font = Enum.Font.Gotham
+keyInput.TextSize = 14
+Instance.new("UICorner", keyInput).CornerRadius = UDim.new(0, 8)
+
+local textboxIcon = Instance.new("ImageLabel", keyInput)
+textboxIcon.Size = UDim2.new(0, 20, 0, 20)
+textboxIcon.Position = UDim2.new(0, 5, 0.5, -10)
+textboxIcon.BackgroundTransparency = 1
+textboxIcon.Image = "rbxassetid://131556088905771"
+
+local paste = Instance.new("TextButton", main)
+paste.Size = UDim2.new(0.101111181, 0, 0, 35)
+paste.Position = UDim2.new(0.849, 0,0, 75)
+paste.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+paste.Text = " "
+paste.TextColor3 = Color3.fromRGB(200, 200, 200)
+paste.Font = Enum.Font.Gotham
+paste.TextSize = 14
+Instance.new("UICorner", paste).CornerRadius = UDim.new(0, 8)
+
+local pasteIcon = Instance.new("ImageLabel", paste)
+pasteIcon.Size = UDim2.new(0, 20, 0, 20)
+pasteIcon.Position = UDim2.new(0.082802549, 5, 0.5, -10)
+pasteIcon.BackgroundTransparency = 1
+pasteIcon.Image = "rbxassetid://98074949340874"
+pasteIcon.ImageColor3 = Color3.fromRGB(178, 178, 178)
+
+local getKey = Instance.new("TextButton", main)
+getKey.Size = UDim2.new(0.45, -5, 0, 40)
+getKey.Position = UDim2.new(0.05, 0, 0, 140)
+getKey.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+getKey.Text = "Get Key"
+getKey.TextColor3 = Color3.fromRGB(255, 255, 255)
+getKey.Font = Enum.Font.GothamBold
+getKey.TextSize = 14
+Instance.new("UICorner", getKey).CornerRadius = UDim.new(0, 8)
+
+local getKeyIcon = Instance.new("ImageLabel", getKey)
+getKeyIcon.Size = UDim2.new(0, 20, 0, 20)
+getKeyIcon.Position = UDim2.new(0, 30, 0.5, -10)
+getKeyIcon.BackgroundTransparency = 1
+getKeyIcon.Image = "rbxassetid://85434572689388"
+
+local verify = Instance.new("TextButton", main)
+verify.Size = UDim2.new(0.45, -5, 0, 40)
+verify.Position = UDim2.new(0.5, 5, 0, 140)
+verify.BackgroundColor3 = Color3.fromRGB(100, 70, 255)
+verify.Text = "Verify Key"
+verify.TextColor3 = Color3.fromRGB(255, 255, 255)
+verify.Font = Enum.Font.GothamBold
+verify.TextSize = 14
+Instance.new("UICorner", verify).CornerRadius = UDim.new(0, 8)
+
+paste.MouseButton1Click:Connect(function()
+	pcall(function()
+		keyInput.Text = getclipboard()
+	end)
+end)
+
+getKey.MouseButton1Click:Connect(function()
+    if ServiceID == "ENTER_YOUR_SERVICE_ID_HERE" then
+        notif("Configuration Error: Service ID not set in script!", "Error")
+        return
+    end
+
+    local hwid = getSafeHWID()
+    local link = GetKeyLink(ServiceID, hwid)
+    
+    setclipboard(link)
+    
+    notif("Panda key link copied to clipboard!", "Success")
+    notif("Paste the link in your browser to get the key.", "Info")
+end)
+
+verify.MouseButton1Click:Connect(function()
+	local enteredKey = keyInput.Text
+	if enteredKey == "" then
+		notif("Please enter a key.", "Error")
+		return
+	end
+    
+    local keyAccepted = false
+
+    -- 1. If AuthLibrary is missing, accept keys that look like PunkX keys (Bypass)
+    if not AuthLibrary then
+        if enteredKey:sub(1, 6) == "PunkX-" and #enteredKey >= 30 then
+            notif("Key format recognized. Loading script...", "Success")
+            keyAccepted = true
+        else
+            -- AuthLibrary is nil AND key format is wrong
+            notif("Error: Panda Auth Library is not configured. (Line 4)", "Error")
+            warn("AuthLibrary is nil. Set the Panda Auth loadstring on line 4.")
+            return
         end
-        gui.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = gui.Position
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        dragging = false
-                    end
-                end)
-            end
-        end)
-        gui.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                dragInput = input
-            end
-        end)
-        game:GetService("UserInputService").InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                update(input)
+    else
+        -- 2. Check using Panda Auth Library
+    	local status = AuthLibrary.check_key(enteredKey)
+        
+    	if status and (status.code == "KEY_VALID" or status == true) then
+            keyAccepted = true
+    	else
+            local errorText = (type(status) == "table" and status.message) or "Invalid or Expired Key."
+    		notif(errorText, "Error")
+            return
+    	end
+    end
+
+    if keyAccepted then
+		notif("Key Valid! Access Granted. Loading script...", "Success")
+		getgenv().script_key = tostring(enteredKey)
+		
+		writefile(savedKeyPath, enteredKey)
+		
+        loadstring(ScriptLoader)()
+        
+		gui:Destroy()
+	end
+end)
+
+if isfile(savedKeyPath) and AuthLibrary then
+	local savedKey = readfile(savedKeyPath)
+    if savedKey and #savedKey > 0 then
+        task.spawn(function()
+            local status = AuthLibrary.check_key(savedKey)
+            if status and (status.code == "KEY_VALID" or status == true) then
+                getgenv().script_key = savedKey
+                
+                loadstring(ScriptLoader)()
+                
+                if gui and gui.Parent then 
+                    gui:Destroy() 
+                end
             end
         end)
     end
-
-    local ScreenGui = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local ImageLabel = Instance.new("ImageLabel")
-    local UICorner = Instance.new("UICorner")
-    local NamaHub = Instance.new("TextLabel")
-    local KeySystemLabel = Instance.new("TextLabel")
-    local TextBoxContainer = Instance.new("Frame")
-    local UICorner_2 = Instance.new("UICorner")
-    local UIStroke = Instance.new("UIStroke")
-    local KeyTextBox = Instance.new("TextBox")
-    local KunciIcon = Instance.new("ImageLabel")
-    local GetKeyContainer = Instance.new("Frame")
-    local GetKeyButton = Instance.new("TextButton")
-    local RedeemContainer = Instance.new("Frame")
-    local RedeemButton = Instance.new("TextButton")
-
-    ScreenGui.Parent = (game:GetService("CoreGui") or game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui"))
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.IgnoreGuiInset = true
-
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = ScreenGui
-    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.Size = UDim2.new(0, 400, 0, 200)
-    MakeDraggable(MainFrame)
-
-    ImageLabel.Parent = MainFrame
-    ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-    ImageLabel.BackgroundTransparency = 1.000
-    ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-    ImageLabel.Size = UDim2.new(0, 400, 0, 200)
-    ImageLabel.Image = "rbxassetid://8992230677"
-    ImageLabel.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    ImageLabel.ImageTransparency = 0.6
-    ImageLabel.ScaleType = Enum.ScaleType.Slice
-    ImageLabel.SliceCenter = Rect.new(99, 99, 99, 99)
-
-    UICorner.CornerRadius = UDim.new(0, 10)
-    UICorner.Parent = MainFrame
-
-    NamaHub.Name = "NamaHub"
+end    NamaHub.Name = "NamaHub"
     NamaHub.Parent = MainFrame
     NamaHub.BackgroundTransparency = 1.000
     NamaHub.Position = UDim2.new(0, 0, 0, 10)
