@@ -1,292 +1,325 @@
--- Gui to Lua
--- Version: 3.2
-local __PELINDA_SERVICE__ = "punk-x-release-key" -- Service ID
-local __PELINDA_SILENTMODE__ = true
-local __PELINDA_SECURITY_LEVEL__ = 1 
+--[[ 
+    PUNK X HUB - PROFESSIONAL KEY SYSTEM
+    Optimized & Fixed by AI
+]]
 
--- Hub execution function
-local function LoadHub()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/GBMofo/Punk-Hub/main/The-Forge"))()
+-- // Services
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+local StarterGui = game:GetService("StarterGui")
+
+-- // Configuration
+local Config = {
+    ServiceID = "punk-x-release-key",
+    HubScript = "https://raw.githubusercontent.com/GBMofo/Punk-Hub/main/The-Forge",
+    FileName = "PunkXHub_Key.txt", -- Specific file name
+    Theme = {
+        Background = Color3.fromRGB(46, 46, 46),
+        Accent = Color3.fromRGB(42, 172, 248),
+        Text = Color3.fromRGB(255, 255, 255)
+    }
+}
+
+-- // Load Dependency (Pelinda)
+if not getgenv().Pelinda then
+    local success, err = pcall(function()
+        getgenv().Pelinda = loadstring(game:HttpGet("https://raw.githubusercontent.com/Pelinwach/Pelinda/main/Library.lua"))()
+    end)
+    if not success then 
+        warn("Failed to load Key System Library:", err) 
+        return 
+    end
 end
 
-function ShowKeySystem()
-    function MakeDraggable(gui)
-        local dragging
-        local dragInput
-        local dragStart
-        local startPos
-        local function update(input)
-            local delta = input.Position - dragStart
-            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-        gui.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = gui.Position
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        dragging = false
-                    end
-                end)
-            end
-        end)
-        gui.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                dragInput = input
-            end
-        end)
-        game:GetService("UserInputService").InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                update(input)
-            end
-        end)
+-- // Helper Functions
+local function Notify(title, text, duration)
+    StarterGui:SetCore("SendNotification", {
+        Title = title;
+        Text = text;
+        Duration = duration or 3;
+    })
+end
+
+local function LoadHub()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet(Config.HubScript))()
+    end)
+    if not success then Notify("Error", "Failed to load Hub: " .. tostring(err), 5) end
+end
+
+local function SaveKey(key)
+    writefile(Config.FileName, key)
+end
+
+local function ReadKey()
+    if isfile(Config.FileName) then
+        return readfile(Config.FileName)
+    end
+    return nil
+end
+
+-- // UI Creation
+local function CreateUI()
+    -- Destroy existing UI if present
+    if CoreGui:FindFirstChild("PunkXKeySystem") then
+        CoreGui.PunkXKeySystem:Destroy()
     end
 
     local ScreenGui = Instance.new("ScreenGui")
     local MainFrame = Instance.new("Frame")
-    local ImageLabel = Instance.new("ImageLabel")
     local UICorner = Instance.new("UICorner")
-    local NamaHub = Instance.new("TextLabel")
-    local KeySystem = Instance.new("TextLabel")
-    local TextBoxContainer = Instance.new("Frame")
-    local UICorner_2 = Instance.new("UICorner")
-    local UIStroke = Instance.new("UIStroke")
-    local KeyTextBox = Instance.new("TextBox")
-    local Kunci = Instance.new("ImageLabel")
-    local GetKeyContainer = Instance.new("Frame")
-    local UICorner_3 = Instance.new("UICorner")
-    local UIStroke_2 = Instance.new("UIStroke")
-    local GetKeyButton = Instance.new("TextButton")
-    local RedeemContainer = Instance.new("Frame")
-    local UICorner_4 = Instance.new("UICorner")
-    local UIStroke_3 = Instance.new("UIStroke")
-    local RedeemButton = Instance.new("TextButton")
+    local BackgroundImage = Instance.new("ImageLabel")
+    local Title = Instance.new("TextLabel")
+    local SubTitle = Instance.new("TextLabel")
+    
+    local InputFrame = Instance.new("Frame")
+    local InputCorner = Instance.new("UICorner")
+    local InputStroke = Instance.new("UIStroke")
+    local InputBox = Instance.new("TextBox")
+    local KeyIcon = Instance.new("ImageLabel")
+    
+    local GetKeyBtn = Instance.new("TextButton")
+    local GetKeyCorner = Instance.new("UICorner")
+    local GetKeyStroke = Instance.new("UIStroke")
+    
+    local RedeemBtn = Instance.new("TextButton")
+    local RedeemCorner = Instance.new("UICorner")
+    local RedeemStroke = Instance.new("UIStroke")
 
-    ScreenGui.Parent = game.CoreGui
+    -- Properties
+    ScreenGui.Name = "PunkXKeySystem"
+    ScreenGui.Parent = CoreGui
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.IgnoreGuiInset = true
 
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
     MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(46, 46, 46)
-    MainFrame.BorderSizePixel = 0
+    MainFrame.BackgroundColor3 = Config.Theme.Background
     MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.Size = UDim2.new(0, 400, 0, 200)
-    MakeDraggable(MainFrame)
-
-    ImageLabel.Parent = MainFrame
-    ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-    ImageLabel.BackgroundTransparency = 1.000
-    ImageLabel.BorderSizePixel = 0
-    ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-    ImageLabel.Size = UDim2.new(0, 400, 0, 200)
-    ImageLabel.Image = "rbxassetid://8992230677"
-    ImageLabel.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    ImageLabel.ImageTransparency = 0.400
-    ImageLabel.ScaleType = Enum.ScaleType.Slice
-    ImageLabel.SliceCenter = Rect.new(99, 99, 99, 99)
+    MainFrame.Size = UDim2.new(0, 0, 0, 0) -- Start small for animation
+    MainFrame.ClipsDescendants = true
 
     UICorner.CornerRadius = UDim.new(0, 12)
     UICorner.Parent = MainFrame
 
-    NamaHub.Name = "NamaHub"
-    NamaHub.Parent = MainFrame
-    NamaHub.BackgroundTransparency = 1.000
-    NamaHub.BorderSizePixel = 0
-    NamaHub.Position = UDim2.new(0.0199999996, 0, 0, 5)
-    NamaHub.Size = UDim2.new(1.25, -100, 0, 40)
-    NamaHub.Font = Enum.Font.RobotoCondensed
-    NamaHub.Text = "Welcome to, PUNK X HUB"
-    NamaHub.TextColor3 = Color3.fromRGB(255, 255, 255)
-    NamaHub.TextSize = 34.000
-    NamaHub.TextXAlignment = Enum.TextXAlignment.Left
+    BackgroundImage.Parent = MainFrame
+    BackgroundImage.AnchorPoint = Vector2.new(0.5, 0.5)
+    BackgroundImage.BackgroundTransparency = 1
+    BackgroundImage.Position = UDim2.new(0.5, 0, 0.5, 0)
+    BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
+    BackgroundImage.Image = "rbxassetid://8992230677"
+    BackgroundImage.ImageTransparency = 0.6
+    BackgroundImage.ImageColor3 = Color3.new(0,0,0)
+    BackgroundImage.ScaleType = Enum.ScaleType.Slice
+    BackgroundImage.SliceCenter = Rect.new(99, 99, 99, 99)
 
-    KeySystem.Name = "KeySystem"
-    KeySystem.Parent = MainFrame
-    KeySystem.BackgroundTransparency = 1.000
-    KeySystem.BorderSizePixel = 0
-    KeySystem.Position = UDim2.new(0, 0, 0.159999996, 0)
-    KeySystem.Size = UDim2.new(0, 200, 0, 50)
-    KeySystem.Font = Enum.Font.FredokaOne
-    KeySystem.Text = "KEY SYSTEM"
-    KeySystem.TextColor3 = Color3.fromRGB(43, 177, 255)
-    KeySystem.TextSize = 34.000
-    KeySystem.TextXAlignment = Enum.TextXAlignment.Center
-    KeySystem.AnchorPoint = Vector2.new(0.5, 0)
-    KeySystem.Position = UDim2.new(0.5, 0, 0.20, 0)
+    Title.Name = "Title"
+    Title.Parent = MainFrame
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0.05, 0, 0.05, 0)
+    Title.Size = UDim2.new(0.9, 0, 0.2, 0)
+    Title.Font = Enum.Font.RobotoCondensed
+    Title.Text = "Welcome to PUNK X HUB"
+    Title.TextColor3 = Config.Theme.Text
+    Title.TextSize = 28
+    Title.TextXAlignment = Enum.TextXAlignment.Left
 
-    TextBoxContainer.Name = "TextBoxContainer"
-    TextBoxContainer.Parent = MainFrame
-    TextBoxContainer.BackgroundTransparency = 1.000
-    TextBoxContainer.BorderSizePixel = 0
-    TextBoxContainer.Position = UDim2.new(0.0500000007, 0, 0.449999988, 0)
-    TextBoxContainer.Size = UDim2.new(0, 360, 0, 40)
+    SubTitle.Name = "SubTitle"
+    SubTitle.Parent = MainFrame
+    SubTitle.BackgroundTransparency = 1
+    SubTitle.Position = UDim2.new(0, 0, 0.25, 0)
+    SubTitle.Size = UDim2.new(1, 0, 0.15, 0)
+    SubTitle.Font = Enum.Font.FredokaOne
+    SubTitle.Text = "KEY SYSTEM"
+    SubTitle.TextColor3 = Config.Theme.Accent
+    SubTitle.TextSize = 32
 
-    UICorner_2.CornerRadius = UDim.new(0, 8)
-    UICorner_2.Parent = TextBoxContainer
+    -- Input Area
+    InputFrame.Name = "InputFrame"
+    InputFrame.Parent = MainFrame
+    InputFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    InputFrame.Position = UDim2.new(0.05, 0, 0.5, 0)
+    InputFrame.Size = UDim2.new(0.9, 0, 0.2, 0)
 
-    UIStroke.Parent = TextBoxContainer
-    UIStroke.Thickness = 3.000
-    UIStroke.Color = Color3.fromRGB(255, 255, 255)
-    UIStroke.Transparency = 0.800
-    UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    InputCorner.CornerRadius = UDim.new(0, 8)
+    InputCorner.Parent = InputFrame
 
-    KeyTextBox.Name = "KeyTextBox"
-    KeyTextBox.Parent = TextBoxContainer
-    KeyTextBox.BackgroundColor3 = Color3.fromRGB(63, 63, 65)
-    KeyTextBox.BackgroundTransparency = 1.000
-    KeyTextBox.BorderSizePixel = 0
-    KeyTextBox.Position = UDim2.new(0.10796915, 0, 0, 0)
-    KeyTextBox.Size = UDim2.new(0, 315, 0, 40)
-    KeyTextBox.ZIndex = 2
-    KeyTextBox.Font = Enum.Font.SourceSans
-    KeyTextBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-    KeyTextBox.PlaceholderText = "Enter your license key. . ."
-    KeyTextBox.Text = ""
-    KeyTextBox.TextColor3 = Color3.fromRGB(220, 220, 220)
-    KeyTextBox.TextSize = 20.000
-    KeyTextBox.TextXAlignment = Enum.TextXAlignment.Left
+    InputStroke.Parent = InputFrame
+    InputStroke.Color = Color3.fromRGB(255, 255, 255)
+    InputStroke.Transparency = 0.8
+    InputStroke.Thickness = 1
+    InputStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-    Kunci.Name = "Kunci"
-    Kunci.Parent = TextBoxContainer
-    Kunci.BackgroundTransparency = 1.000
-    Kunci.BorderSizePixel = 0
-    Kunci.Position = UDim2.new(0.0199999996, 0, 0.200000003, 0)
-    Kunci.Size = UDim2.new(0, 25, 0, 25)
-    Kunci.ZIndex = 3
-    Kunci.Image = "rbxassetid://10723416652"
+    InputBox.Parent = InputFrame
+    InputBox.BackgroundTransparency = 1
+    InputBox.Position = UDim2.new(0.12, 0, 0, 0)
+    InputBox.Size = UDim2.new(0.88, 0, 1, 0)
+    InputBox.Font = Enum.Font.SourceSans
+    InputBox.PlaceholderText = "Enter your license key..."
+    InputBox.Text = ""
+    InputBox.TextColor3 = Color3.fromRGB(220, 220, 220)
+    InputBox.TextSize = 18
+    InputBox.TextXAlignment = Enum.TextXAlignment.Left
 
-    GetKeyContainer.Name = "GetKeyContainer"
-    GetKeyContainer.Parent = MainFrame
-    GetKeyContainer.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
-    GetKeyContainer.BorderSizePixel = 0
-    GetKeyContainer.Position = UDim2.new(0.0500000007, 0, 0.699999988, 0)
-    GetKeyContainer.Size = UDim2.new(0, 175, 0, 40)
+    KeyIcon.Parent = InputFrame
+    KeyIcon.BackgroundTransparency = 1
+    KeyIcon.Position = UDim2.new(0.02, 0, 0.15, 0)
+    KeyIcon.Size = UDim2.new(0, 28, 0, 28)
+    KeyIcon.Image = "rbxassetid://10723416652"
 
-    UICorner_3.CornerRadius = UDim.new(0, 8)
-    UICorner_3.Parent = GetKeyContainer
+    -- Buttons
+    GetKeyBtn.Name = "GetKey"
+    GetKeyBtn.Parent = MainFrame
+    GetKeyBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+    GetKeyBtn.Position = UDim2.new(0.05, 0, 0.75, 0)
+    GetKeyBtn.Size = UDim2.new(0.42, 0, 0.2, 0)
+    GetKeyBtn.Font = Enum.Font.SourceSansBold
+    GetKeyBtn.Text = "Get Key"
+    GetKeyBtn.TextColor3 = Config.Theme.Accent
+    GetKeyBtn.TextSize = 20
 
-    UIStroke_2.Parent = GetKeyContainer
-    UIStroke_2.Thickness = 3.000
-    UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
-    UIStroke_2.Transparency = 0.200
-    UIStroke_2.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    GetKeyCorner.CornerRadius = UDim.new(0, 8)
+    GetKeyCorner.Parent = GetKeyBtn
+    
+    GetKeyStroke.Parent = GetKeyBtn
+    GetKeyStroke.Color = Config.Theme.Accent
+    GetKeyStroke.Transparency = 0.5
+    GetKeyStroke.Thickness = 1
+    GetKeyStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-    GetKeyButton.Name = "GetKeyButton"
-    GetKeyButton.Parent = GetKeyContainer
-    GetKeyButton.BackgroundTransparency = 1.000
-    GetKeyButton.BorderSizePixel = 0
-    GetKeyButton.Size = UDim2.new(1, 0, 1, 0)
-    GetKeyButton.Font = Enum.Font.SourceSans
-    GetKeyButton.Text = "Get Key"
-    GetKeyButton.TextColor3 = Color3.fromRGB(42, 172, 248)
-    GetKeyButton.TextSize = 20.000
+    RedeemBtn.Name = "Redeem"
+    RedeemBtn.Parent = MainFrame
+    RedeemBtn.BackgroundColor3 = Config.Theme.Accent
+    RedeemBtn.Position = UDim2.new(0.53, 0, 0.75, 0)
+    RedeemBtn.Size = UDim2.new(0.42, 0, 0.2, 0)
+    RedeemBtn.Font = Enum.Font.SourceSansBold
+    RedeemBtn.Text = "Redeem"
+    RedeemBtn.TextColor3 = Color3.WHITE
+    RedeemBtn.TextSize = 20
 
-    RedeemContainer.Name = "RedeemContainer"
-    RedeemContainer.Parent = MainFrame
-    RedeemContainer.BackgroundColor3 = Color3.fromRGB(42, 172, 248)
-    RedeemContainer.BorderSizePixel = 0
-    RedeemContainer.Position = UDim2.new(0.550000012, 0, 0.699999988, 0)
-    RedeemContainer.Size = UDim2.new(0, 175, 0, 40)
+    RedeemCorner.CornerRadius = UDim.new(0, 8)
+    RedeemCorner.Parent = RedeemBtn
 
-    UICorner_4.CornerRadius = UDim.new(0, 8)
-    UICorner_4.Parent = RedeemContainer
-
-    UIStroke_3.Parent = RedeemContainer
-    UIStroke_3.Thickness = 3.000
-    UIStroke_3.Color = Color3.fromRGB(255, 255, 255)
-    UIStroke_3.Transparency = 0.200
-    UIStroke_3.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-
-    RedeemButton.Name = "RedeemButton"
-    RedeemButton.Parent = RedeemContainer
-    RedeemButton.BackgroundTransparency = 1.000
-    RedeemButton.BorderSizePixel = 0
-    RedeemButton.Size = UDim2.new(1, 0, 1, 0)
-    RedeemButton.Font = Enum.Font.SourceSans
-    RedeemButton.Text = "Redeem"
-    RedeemButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    RedeemButton.TextSize = 20.000
-
-    -- // Button Logic
-    GetKeyButton.MouseButton1Click:Connect(function()
-        local key_link = Pelinda.GetKeyLink(__PELINDA_SERVICE__)
-        setclipboard(key_link)
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "PUNK X HUB",
-            Text = "Key link copied to clipboard!",
-            Duration = 5
-        })
+    -- Draggable Logic (Improved)
+    local dragging, dragInput, dragStart, startPos
+    local function update(input)
+        local delta = input.Position - dragStart
+        local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        MainFrame.Position = newPos
+    end
+    MainFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    MainFrame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then update(input) end
     end)
 
-    RedeemButton.MouseButton1Click:Connect(function()
-        local key = KeyTextBox.Text
-        local status = Pelinda.Init({
-            Service = __PELINDA_SERVICE__,
-            SilentMode = __PELINDA_SILENTMODE__,
-            Key = key,
-            SecurityLevel = __PELINDA_SECURITY_LEVEL__
-        })
+    -- Animations
+    TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 400, 0, 200)}):Play()
 
-        if status == "validated!!" then
-            writefile("yourkeypath.txt", key)
+    local function ButtonAnim(btn)
+        btn.MouseButton1Down:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.1), {Size = UDim2.new(btn.Size.X.Scale * 0.95, 0, btn.Size.Y.Scale * 0.95, 0)}):Play()
+        end)
+        btn.MouseButton1Up:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.1), {Size = UDim2.new(btn.Size.X.Scale / 0.95, 0, btn.Size.Y.Scale / 0.95, 0)}):Play()
+        end)
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.1), {Size = UDim2.new(btn.Size.X.Scale, 0, btn.Size.Y.Scale, 0)}):Play() -- Reset safety
+        end)
+    end
+    ButtonAnim(GetKeyBtn)
+    ButtonAnim(RedeemBtn)
+
+    -- Logic
+    GetKeyBtn.MouseButton1Click:Connect(function()
+        local success, link = pcall(function()
+            return Pelinda.GetKeyLink(Config.ServiceID)
+        end)
+        
+        if success and link then
+            setclipboard(link)
+            Notify("PUNK X HUB", "Link copied to clipboard!", 3)
+            GetKeyBtn.Text = "Copied!"
+            task.wait(2)
+            GetKeyBtn.Text = "Get Key"
+        else
+            Notify("Error", "Failed to generate link.", 3)
+        end
+    end)
+
+    RedeemBtn.MouseButton1Click:Connect(function()
+        local key = InputBox.Text
+        if key == "" then return end
+
+        RedeemBtn.Text = "Checking..."
+        local status
+        local success, err = pcall(function()
+            status = Pelinda.Init({
+                Service = Config.ServiceID,
+                SilentMode = true,
+                Key = key,
+                SecurityLevel = 1
+            })
+        end)
+
+        if success and status == "validated!!" then
+            SaveKey(key)
+            Notify("Success", "Key Validated!", 3)
+            TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0,0,0,0)}):Play()
+            task.wait(0.4)
             ScreenGui:Destroy()
             LoadHub()
         else
-            KeyTextBox.Text = ""
-            KeyTextBox.PlaceholderText = "Invalid Key!"
+            RedeemBtn.Text = "Redeem"
+            InputBox.Text = ""
+            InputBox.PlaceholderText = "Invalid Key"
             task.wait(2)
-            KeyTextBox.PlaceholderText = "Enter your license key. . ."
+            InputBox.PlaceholderText = "Enter your license key..."
         end
     end)
 end
 
--- // Auto Check Logic
-spawn(function()
-    pcall(function()
-        local ExistingKey = isfile("yourkeypath.txt")
-        if ExistingKey then
-            local success, KeyFound = pcall(function()
-                return readfile("yourkeypath.txt")
-            end)
+-- // Main Auto-Check Logic
+task.spawn(function()
+    local savedKey = ReadKey()
+    
+    if savedKey then
+        -- Optional: Show a small "Verifying" toast notification here
+        Notify("PUNK X HUB", "Verifying saved key...", 2)
+        
+        local status
+        local success = pcall(function()
+            status = Pelinda.Init({
+                Service = Config.ServiceID,
+                SilentMode = true,
+                Key = savedKey:gsub("%s+", ""), -- Clean whitespace
+                SecurityLevel = 1
+            })
+        end)
 
-            if success and KeyFound and KeyFound ~= "" then
-                KeyFound = KeyFound:gsub("%s+", "") 
-                print("Validating your key...")
-
-                local validated = false
-                for attempt = 1, 3 do
-                    print("Key Validation Attempt #" .. attempt)
-                    local ok, result = pcall(function()
-                        return Pelinda.Init({
-                            Service = __PELINDA_SERVICE__,
-                            SilentMode = __PELINDA_SILENTMODE__,
-                            Key = KeyFound,
-                            SecurityLevel = __PELINDA_SECURITY_LEVEL__
-                        })
-                    end)
-
-                    if ok and result == "validated!!" then
-                        validated = true
-                        break
-                    end
-                    task.wait(.5)
-                end
-
-                if validated then
-                    print("Success Load")
-                    LoadHub()
-                else
-                    print("Expired or Invalid Key")
-                    ShowKeySystem()
-                end
-            else
-                ShowKeySystem()
-            end
+        if success and status == "validated!!" then
+            Notify("PUNK X HUB", "Welcome back!", 3)
+            LoadHub()
         else
-            ShowKeySystem()
+            CreateUI()
         end
-    end)
+    else
+        CreateUI()
+    end
 end)
